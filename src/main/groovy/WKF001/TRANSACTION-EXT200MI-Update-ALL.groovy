@@ -23,19 +23,18 @@
 
  import groovy.lang.Closure
 
- import java.time.LocalDate;
  import java.time.LocalDateTime;
  import java.time.format.DateTimeFormatter;
  import java.time.ZoneId;
- import groovy.json.JsonSlurper;
- import java.math.BigDecimal;
- import java.math.RoundingMode;
- import java.text.DecimalFormat;
-
+ 
 /*
- *Modification area - M3
- *Nbr       Date      User id     Description
- *WRK-001   20260302  WLAM        Authorisation status - Update
+ * Modification area - M3
+ * Name        EXT200MI.Update
+ * Type        Transaction
+ * Description Authorisation status - Update
+ *
+ * Nbr       Date      User         Description
+ * WRK-001   20260302  Wyllie Lam   Initial 
  */
 
  /**
@@ -64,7 +63,7 @@
   private String lnam;
   private boolean found;
   
-  private int XXCONO;
+  private int xxcono;
   
   public Update(MIAPI mi, DatabaseAPI database, MICallerAPI miCaller, LoggerAPI logger, ProgramAPI program, IonAPI ion) {
     this.mi = mi;
@@ -122,9 +121,9 @@
   	if (plp2.isEmpty()) { plp2 = "0";  }
 
   	if (cono.isEmpty()) {
-  	  XXCONO = (Integer)program.LDAZD.CONO;
+  	  xxcono = (Integer)program.LDAZD.CONO;
   	} else {
-  	  XXCONO = cono.toInteger();
+  	  xxcono = cono.toInteger();
   	}
 
     // Validate input fields for Transaction type
@@ -171,11 +170,11 @@
     // - validate approver
     if (!appr.isEmpty()) {
       DBAction queryCMNUSR = database.table("CMNUSR").index("00").selection("JUUSID").build()
-      DBContainer CMNUSR = queryCMNUSR.getContainer();
-      CMNUSR.set("JUCONO", 0);
-      CMNUSR.set("JUDIVI", "");
-      CMNUSR.set("JUUSID", appr);
-      if (!queryCMNUSR.read(CMNUSR)) {
+      DBContainer dbCMNUSR = queryCMNUSR.getContainer();
+      dbCMNUSR.set("JUCONO", 0);
+      dbCMNUSR.set("JUDIVI", "");
+      dbCMNUSR.set("JUUSID", appr);
+      if (!queryCMNUSR.read(dbCMNUSR)) {
         mi.error("Approver is invalid.");
         return;
       }
@@ -183,11 +182,11 @@
     // - validate requisition by
     if (!purc.isEmpty()) {
       DBAction queryCMNUSR = database.table("CMNUSR").index("00").selection("JUUSID").build();
-      DBContainer CMNUSR = queryCMNUSR.getContainer();
-      CMNUSR.set("JUCONO", 0);
-      CMNUSR.set("JUDIVI", "");
-      CMNUSR.set("JUUSID", purc);
-      if (!queryCMNUSR.read(CMNUSR)) {
+      DBContainer dbCMNUSR = queryCMNUSR.getContainer();
+      dbCMNUSR.set("JUCONO", 0);
+      dbCMNUSR.set("JUDIVI", "");
+      dbCMNUSR.set("JUUSID", purc);
+      if (!queryCMNUSR.read(dbCMNUSR)) {
         mi.error("Requisition by is invalid.");
         return;
       }
@@ -196,25 +195,25 @@
     // - validate creator id
     if (!crid.isEmpty()) {
       DBAction queryCMNUSR = database.table("CMNUSR").index("00").selection("JUUSID").build();
-      DBContainer CMNUSR = queryCMNUSR.getContainer();
-      CMNUSR.set("JUCONO", 0);
-      CMNUSR.set("JUDIVI", "");
-      CMNUSR.set("JUUSID", crid);
-      if (!queryCMNUSR.read(CMNUSR)) {
+      DBContainer dbCMNUSR = queryCMNUSR.getContainer();
+      dbCMNUSR.set("JUCONO", 0);
+      dbCMNUSR.set("JUDIVI", "");
+      dbCMNUSR.set("JUUSID", crid);
+      if (!queryCMNUSR.read(dbCMNUSR)) {
         mi.error("Creator ID is invalid.");
         return;
       }
     }
         
-    DBAction query = database.table("EXT200").index("00").build();
-    DBContainer container = query.getContainer();
-    container.set("EXCONO", XXCONO);
-    container.set("EXTTYP", ttyp);
-    container.set("EXPUNO", puno);
-    container.set("EXPLPN", plpn.toInteger());
-    container.set("EXPLPS", plps.toInteger());
-    container.set("EXPLP2", plp2.toInteger());
-    if (!query.readLock(container, updateCallBack)) {
+    DBAction queryEXT200 = database.table("EXT200").index("00").build();
+    DBContainer dbEXT200 = queryEXT200.getContainer();
+    dbEXT200.set("EXCONO", xxcono);
+    dbEXT200.set("EXTTYP", ttyp);
+    dbEXT200.set("EXPUNO", puno);
+    dbEXT200.set("EXPLPN", plpn.toInteger());
+    dbEXT200.set("EXPLPS", plps.toInteger());
+    dbEXT200.set("EXPLP2", plp2.toInteger());
+    if (!queryEXT200.readLock(dbEXT200, updateCallBack)) {
       mi.error("Record does not exists in EXT200");
       return;
     }
@@ -226,12 +225,10 @@
    */   
   Closure<?> updateCallBack = { LockedResult lockedResult ->
     
-    logger.debug("UpdateEXT200 Line 237");
-	ZoneId zid = ZoneId.of("Australia/Sydney"); 
+	  ZoneId zid = ZoneId.of("Australia/Sydney"); 
     LocalDateTime currentDateTimeNow = LocalDateTime.now(zid);
     int currentDate = currentDateTimeNow.format(DateTimeFormatter.ofPattern("yyyyMMdd")).toInteger();
     int currentTime = Integer.valueOf(currentDateTimeNow.format(DateTimeFormatter.ofPattern("HHmmss")));
-    //String timestamp = currentDateTimeNow.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
     Date systemDate = new Date();
     long timestamp  = systemDate.getTime();    
     

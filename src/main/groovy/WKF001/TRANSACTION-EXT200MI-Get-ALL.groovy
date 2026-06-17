@@ -21,19 +21,14 @@
  ***************************************************************
  */
 
- import groovy.lang.Closure
- import java.time.LocalDate;
- import java.time.LocalDateTime;
- import java.time.format.DateTimeFormatter;
- import groovy.json.JsonSlurper;
- import java.math.BigDecimal;
- import java.math.RoundingMode;
- import java.text.DecimalFormat;
-
 /*
- *Modification area - M3
- *Nbr       Date      User id     Description
- *WRK-001   20260302  WLAM        Authorisation status - Get
+ * Modification area - M3
+ * Name        EXT200MI.Get
+ * Type        Transaction
+ * Description Authorisation status - Get
+ *
+ * Nbr       Date      User         Description
+ * WRK-001   20260302  Wyllie Lam   Initial
  *
 */
 
@@ -56,7 +51,7 @@
   private String plps;
   private String plp2;
   
-  private int XXCONO;
+  private int xxcono;
    
  /*
   * Get Purchase Authorisation extension table row
@@ -131,32 +126,32 @@
     }
 
   	if (cono.isEmpty()) {
-  	  XXCONO = (Integer)program.LDAZD.CONO;
+  	  xxcono = (Integer)program.LDAZD.CONO;
   	} else {
-  	  XXCONO = cono.toInteger();
+  	  xxcono = cono.toInteger();
   	}
 
-    DBAction query = database.table("EXT200").index("00").selection("EXCONO", "EXPUNO", "EXPLPN", "EXPLPS", "EXPLP2", "EXAPPR", "EXASTS", "EXLMTS", "EXPURC", "EXCRID", "EXLNAM").build();
-    DBContainer container = query.getContainer();
-    container.set("EXCONO", XXCONO);
-    container.set("EXTTYP", ttyp);
-    container.set("EXPUNO", puno);
-    container.set("EXPLPN", plpn.toInteger());
-    container.set("EXPLPS", plps.toInteger());
-    container.set("EXPLP2", plp2.toInteger());
-    if (query.read(container)) {
-      mi.outData.put("CONO", XXCONO.toString());
-      mi.outData.put("PUNO", container.get("EXPUNO").toString());
-      mi.outData.put("TTYP", container.get("EXTTYP").toString());
-      mi.outData.put("PLPN", container.get("EXPLPN").toString());
-      mi.outData.put("PLPS", container.get("EXPLPS").toString());
-      mi.outData.put("PLP2", container.get("EXPLP2").toString());
-      mi.outData.put("APPR", container.get("EXAPPR").toString());
-      mi.outData.put("ASTS", container.get("EXASTS").toString());
-      mi.outData.put("PURC", container.get("EXPURC").toString());
-      mi.outData.put("CRID", container.get("EXCRID").toString());
-      mi.outData.put("LMTS", container.get("EXLMTS").toString());
-      mi.outData.put("LNAM", container.get("EXLNAM").toString());
+    DBAction queryEXT200 = database.table("EXT200").index("00").selection("EXCONO", "EXPUNO", "EXPLPN", "EXPLPS", "EXPLP2", "EXAPPR", "EXASTS", "EXLMTS", "EXPURC", "EXCRID", "EXLNAM").build();
+    DBContainer dbEXT200 = queryEXT200.getContainer();
+    dbEXT200.set("EXCONO", xxcono);
+    dbEXT200.set("EXTTYP", ttyp);
+    dbEXT200.set("EXPUNO", puno);
+    dbEXT200.set("EXPLPN", plpn.toInteger());
+    dbEXT200.set("EXPLPS", plps.toInteger());
+    dbEXT200.set("EXPLP2", plp2.toInteger());
+    if (queryEXT200.read(dbEXT200)) {
+      mi.outData.put("CONO", xxcono.toString());
+      mi.outData.put("PUNO", dbEXT200.get("EXPUNO").toString());
+      mi.outData.put("TTYP", dbEXT200.get("EXTTYP").toString());
+      mi.outData.put("PLPN", dbEXT200.get("EXPLPN").toString());
+      mi.outData.put("PLPS", dbEXT200.get("EXPLPS").toString());
+      mi.outData.put("PLP2", dbEXT200.get("EXPLP2").toString());
+      mi.outData.put("APPR", dbEXT200.get("EXAPPR").toString());
+      mi.outData.put("ASTS", dbEXT200.get("EXASTS").toString());
+      mi.outData.put("PURC", dbEXT200.get("EXPURC").toString());
+      mi.outData.put("CRID", dbEXT200.get("EXCRID").toString());
+      mi.outData.put("LMTS", dbEXT200.get("EXLMTS").toString());
+      mi.outData.put("LNAM", dbEXT200.get("EXLNAM").toString());
       mi.write();
     } else {
       mi.error("Record does not exist in EXT200.");

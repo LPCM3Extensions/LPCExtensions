@@ -23,18 +23,14 @@
 
  import groovy.lang.Closure
  
- import java.time.LocalDate;
- import java.time.LocalDateTime;
- import java.time.format.DateTimeFormatter;
- import groovy.json.JsonSlurper;
- import java.math.BigDecimal;
- import java.math.RoundingMode;
- import java.text.DecimalFormat;
-
 /*
- *Modification area - M3
- *Nbr       Date      User id     Description
- *WRK-001   20260302  WLAM        Authorisation status - Delete
+ * Modification area - M3
+ * Name        EXT200MI.Delete
+ * Type        Transaction
+ * Description Authorisation status - Delete
+ *
+ * Nbr       Date      User         Description
+ * WRK-001   20260302  Wyllie Lam   Initial
  *
  */
 
@@ -58,7 +54,7 @@
   private String plps;
   private String plp2;
   
-  private int XXCONO;
+  private int xxcono;
   
  /*
   * Delete Purchase Authorisation extension table row
@@ -134,20 +130,20 @@
     }
 
   	if (cono.isEmpty()) {
-  	  XXCONO = (Integer)program.LDAZD.CONO;
+  	  xxcono = (Integer)program.LDAZD.CONO;
   	} else {
-  	  XXCONO = cono.toInteger();
+  	  xxcono = cono.toInteger();
   	}
 
-  	DBAction queryEXT200 = database.table("EXT200").index("00").selection("EXCONO", "EXPUNO", "EXPLPN", "EXPLPS", "EXPLP2").build();
-    DBContainer EXT200 = queryEXT200.getContainer();
-    EXT200.set("EXCONO", XXCONO);
-    EXT200.set("EXTTYP", ttyp);
-    EXT200.set("EXPUNO", puno);
-    EXT200.set("EXPLPN", plpn.toInteger());
-    EXT200.set("EXPLPS", plps.toInteger());
-    EXT200.set("EXPLP2", plp2.toInteger());
-    if (!queryEXT200.readLock(EXT200, deleteCallBack)) {
+  	DBAction queryEXT200 = database.table("EXT200").index("00").selection("EXPUNO", "EXPLPN", "EXPLPS", "EXPLP2").build();
+    DBContainer ext200 = queryEXT200.getContainer();
+    ext200.set("EXCONO", xxcono);
+    ext200.set("EXTTYP", ttyp);
+    ext200.set("EXPUNO", puno);
+    ext200.set("EXPLPN", plpn.toInteger());
+    ext200.set("EXPLPS", plps.toInteger());
+    ext200.set("EXPLP2", plp2.toInteger());
+    if (!queryEXT200.readLock(ext200, deleteCallBack)) {
       mi.error("Record does not exist");
       return;
     }

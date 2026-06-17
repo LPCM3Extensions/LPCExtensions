@@ -23,20 +23,18 @@
 
  import groovy.lang.Closure
  
- import java.time.LocalDate;
  import java.time.LocalDateTime;
  import java.time.format.DateTimeFormatter;
  import java.time.ZoneId;
- import groovy.json.JsonSlurper;
- import java.math.BigDecimal;
- import java.math.RoundingMode;
- import java.text.DecimalFormat;
-
 
 /*
- *Modification area - M3
- *Nbr         Date      User id     Description
- *WRK-001     20260302  WLAM        Authorisation status - Add
+ * Modification area - M3
+ * Name        EXT200MI.Add
+ * Type        Transaction
+ * Description Authorisation status - Add
+ *
+ * Nbr       Date      User         Description
+ * WRK-001   20260302  Wyllie Lam   Initial
  *
  */
 
@@ -66,7 +64,7 @@ public class Add extends ExtendM3Transaction {
   private boolean found;
   
 
-  private int XXCONO;
+  private int xxcono;
  
  /*
   * Add Purchase Authorisation extension table row
@@ -115,9 +113,9 @@ public class Add extends ExtendM3Transaction {
   	if (plp2.isEmpty()) { plp2 = "0";  }
 
   	if (cono.isEmpty()) {
-  	  XXCONO = (Integer)program.LDAZD.CONO;
+  	  xxcono = (Integer)program.LDAZD.CONO;
   	} else {
-  	  XXCONO = cono.toInteger();
+  	  xxcono = cono.toInteger();
   	}
 
     // Validate input fields for Transaction type
@@ -176,12 +174,12 @@ public class Add extends ExtendM3Transaction {
     // - validate planned PO 
     if (ttyp.equals("PRL")) {
       DBAction queryMPOPLP = database.table("MPOPLP").index("00").selection("POCONO", "POPLPN", "POPLPS", "POPLP2").build();
-      DBContainer MPOPLP = queryMPOPLP.getContainer();
-      MPOPLP.set("POCONO", XXCONO);
-      MPOPLP.set("POPLPN", plpn.toInteger());
-      MPOPLP.set("POPLPS", plps.toInteger());
-      MPOPLP.set("POPLP2", plp2.toInteger());
-      if (!queryMPOPLP.read(MPOPLP)) {
+      DBContainer dbMPOPLP = queryMPOPLP.getContainer();
+      dbMPOPLP.set("POCONO", xxcono);
+      dbMPOPLP.set("POPLPN", plpn.toInteger());
+      dbMPOPLP.set("POPLPS", plps.toInteger());
+      dbMPOPLP.set("POPLP2", plp2.toInteger());
+      if (!queryMPOPLP.read(dbMPOPLP)) {
         mi.error("PO Requisition number invalid");
         return;
       }    
@@ -191,10 +189,10 @@ public class Add extends ExtendM3Transaction {
     // - validate puno
     if (ttyp.equals("PO")) {
        DBAction queryMPHEAD = database.table("MPHEAD").index("00").selection("IAPUNO").build();
-       DBContainer MPHEAD = queryMPHEAD.getContainer();
-       MPHEAD.set("IACONO", XXCONO);
-       MPHEAD.set("IAPUNO", puno);
-       if (!queryMPHEAD.read(MPHEAD)) {    
+       DBContainer dbMPHEAD = queryMPHEAD.getContainer();
+       dbMPHEAD.set("IACONO", xxcono);
+       dbMPHEAD.set("IAPUNO", puno);
+       if (!queryMPHEAD.read(dbMPHEAD)) {    
         mi.error("PO number is invalid.");
         return;
        }
@@ -211,11 +209,11 @@ public class Add extends ExtendM3Transaction {
     // - validate approver
     if (!appr.isEmpty()) {
       DBAction queryCMNUSR = database.table("CMNUSR").index("00").selection("JUUSID").build();
-      DBContainer CMNUSR = queryCMNUSR.getContainer();
-      CMNUSR.set("JUCONO", 0);
-      CMNUSR.set("JUDIVI", "");
-      CMNUSR.set("JUUSID", appr);
-      if (!queryCMNUSR.read(CMNUSR)) {
+      DBContainer dbCMNUSR = queryCMNUSR.getContainer();
+      dbCMNUSR.set("JUCONO", 0);
+      dbCMNUSR.set("JUDIVI", "");
+      dbCMNUSR.set("JUUSID", appr);
+      if (!queryCMNUSR.read(dbCMNUSR)) {
         mi.error("Approver is invalid.");
         return;
       }
@@ -224,11 +222,11 @@ public class Add extends ExtendM3Transaction {
     // - validate requisition by
     if (!purc.isEmpty()) {
       DBAction queryCMNUSR = database.table("CMNUSR").index("00").selection("JUUSID").build();
-      DBContainer CMNUSR = queryCMNUSR.getContainer();
-      CMNUSR.set("JUCONO", 0);
-      CMNUSR.set("JUDIVI", "");
-      CMNUSR.set("JUUSID", purc);
-      if (!queryCMNUSR.read(CMNUSR)) {
+      DBContainer dbCMNUSR = queryCMNUSR.getContainer();
+      dbCMNUSR.set("JUCONO", 0);
+      dbCMNUSR.set("JUDIVI", "");
+      dbCMNUSR.set("JUUSID", purc);
+      if (!queryCMNUSR.read(dbCMNUSR)) {
         mi.error("Requisition by is invalid.");
         return;
       }
@@ -237,11 +235,11 @@ public class Add extends ExtendM3Transaction {
     // - validate creator id
     if (!crid.isEmpty()) {
       DBAction queryCMNUSR = database.table("CMNUSR").index("00").selection("JUUSID").build();
-      DBContainer CMNUSR = queryCMNUSR.getContainer();
-      CMNUSR.set("JUCONO", 0);
-      CMNUSR.set("JUDIVI", "");
-      CMNUSR.set("JUUSID", crid);
-      if (!queryCMNUSR.read(CMNUSR)) {
+      DBContainer dbCMNUSR = queryCMNUSR.getContainer();
+      dbCMNUSR.set("JUCONO", 0);
+      dbCMNUSR.set("JUDIVI", "");
+      dbCMNUSR.set("JUUSID", crid);
+      if (!queryCMNUSR.read(dbCMNUSR)) {
         mi.error("Creator ID is invalid.");
         return;
       }
@@ -260,44 +258,43 @@ public class Add extends ExtendM3Transaction {
     LocalDateTime currentDateTimeNow = LocalDateTime.now(zid);
     int currentDate = currentDateTimeNow.format(DateTimeFormatter.ofPattern("yyyyMMdd")).toInteger();
     int currentTime = Integer.valueOf(currentDateTimeNow.format(DateTimeFormatter.ofPattern("HHmmss")));
-    //String timestamp = currentDateTimeNow.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
     Date systemDate = new Date();
     long timestamp  = systemDate.getTime();
 
 	  DBAction actionEXT200 = database.table("EXT200").build();
-  	DBContainer EXT200 = actionEXT200.getContainer();
-  	EXT200.set("EXCONO", XXCONO);
-  	EXT200.set("EXTTYP", ttyp);
+  	DBContainer dbEXT200 = actionEXT200.getContainer();
+  	dbEXT200.set("EXCONO", xxcono);
+  	dbEXT200.set("EXTTYP", ttyp);
   	if (!puno.isEmpty()) {
-  	  EXT200.set("EXPUNO", puno);
+  	  dbEXT200.set("EXPUNO", puno);
   	}
   	if (!plpn.isEmpty()) {
-  	  EXT200.set("EXPLPN", plpn.toInteger());
+  	  dbEXT200.set("EXPLPN", plpn.toInteger());
   	}
   	if (!plps.isEmpty()) {
-  	  EXT200.set("EXPLPS", plps.toInteger());
+  	  dbEXT200.set("EXPLPS", plps.toInteger());
   	}
   	if (!plp2.isEmpty()) {
-  	  EXT200.set("EXPLP2", plp2.toInteger());
+  	  dbEXT200.set("EXPLP2", plp2.toInteger());
   	}
-  	EXT200.set("EXASTS", asts);
+  	dbEXT200.set("EXASTS", asts);
   	if (!appr.isEmpty()) {
-  	  EXT200.set("EXAPPR", appr);
+  	  dbEXT200.set("EXAPPR", appr);
   	}  	
-  	EXT200.set("EXLMTS", timestamp);
-  	EXT200.set("EXRGDT", currentDate);
-  	EXT200.set("EXRGTM", currentTime);
-  	EXT200.set("EXLMDT", currentDate);
-  	EXT200.set("EXCHNO", 0);
-  	EXT200.set("EXCHID", program.getUser());
+  	dbEXT200.set("EXLMTS", timestamp);
+  	dbEXT200.set("EXRGDT", currentDate);
+  	dbEXT200.set("EXRGTM", currentTime);
+  	dbEXT200.set("EXLMDT", currentDate);
+  	dbEXT200.set("EXCHNO", 0);
+  	dbEXT200.set("EXCHID", program.getUser());
   	if (!purc.isEmpty()) {
-  	  EXT200.set("EXPURC", purc);
+  	  dbEXT200.set("EXPURC", purc);
   	}  	
   	if (!crid.isEmpty()) {
-  	  EXT200.set("EXCRID", crid);
+  	  dbEXT200.set("EXCRID", crid);
   	}  	
-  	EXT200.set("EXLNAM", 0);
-    actionEXT200.insert(EXT200, recordExists);
+  	dbEXT200.set("EXLNAM", 0);
+    actionEXT200.insert(dbEXT200, recordExists);
 	}
 	
   /**
