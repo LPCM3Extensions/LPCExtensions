@@ -54,7 +54,7 @@ public class ProcessApproval extends ExtendM3Transaction {
   
   boolean allStatusesOk;
   
-  private List lstToBeApproved;
+  private List <Map<String, String>> lstToBeApproved;
   
   public ProcessApproval(MIAPI mi, DatabaseAPI database, MICallerAPI miCaller, LoggerAPI logger, ProgramAPI program) {
     this.mi = mi;
@@ -75,13 +75,11 @@ public class ProcessApproval extends ExtendM3Transaction {
     
     lstToBeApproved = new ArrayList();
     
-    ExpressionFactory expression = database.getExpressionFactory("FPLEDG");
-
     DBAction queryFPLEDG = database.table("FPLEDG").index("12").selection("EPDIVI", "EPSUNO", "EPSINO", "EPINYR", "EPAPRV").build();
     DBContainer dbFPLEDG = queryFPLEDG.getContainer();
     dbFPLEDG.set("EPCONO", XXCONO);
    
-    queryFPLEDG.readAll(dbFPLEDG, 1, 9999, lstFPLEDG);
+    queryFPLEDG.readAll(dbFPLEDG, 1, 1000, lstFPLEDG);
     
     logger.debug("lstToBeApproved.size=" + lstToBeApproved.size());
     for (int i=0;i<lstToBeApproved.size();i++) {
